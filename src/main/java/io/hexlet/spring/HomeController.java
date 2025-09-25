@@ -9,4 +9,9 @@ public class HomeController {
     public String home() {
         return "Добро пожаловать в Hexlet Spring Blog!";
     }
+
+    @GetMapping("/about")
+    public String about() {
+        return "Это простой блог на Spring. Я только учусь";
+    }
 }

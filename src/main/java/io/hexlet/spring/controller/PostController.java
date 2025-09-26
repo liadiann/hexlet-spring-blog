@@ -1,37 +1,38 @@
 package io.hexlet.spring.controller;
 
 import io.hexlet.spring.model.Post;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 public class PostController {
     private List<Post> posts = new ArrayList<>();
 
     @GetMapping("/posts")
-    public List<Post> index() {
-        return posts;
+    public ResponseEntity<List<Post>> index() {
+        return ResponseEntity.ok()
+                .body(posts);
     }
 
     @GetMapping("/posts/{id}")
-    public Optional<Post> show(@PathVariable String id) {
+    public ResponseEntity<Post> show(@PathVariable String id) {
         var post = posts.stream()
                 .filter(p -> p.getTitle().equals(id))
                 .findFirst();
-        return post;
+        return ResponseEntity.of(post);
     }
 
     @PostMapping("/posts")
-    public Post create(@RequestBody Post post) {
+    public ResponseEntity<Post> create(@RequestBody Post post) {
         if (post.getTitle() == null || post.getContent() == null
         || post.getTitle().isEmpty() || post.getContent().isEmpty()) {
             return null;
         }
         posts.add(post);
-        return post;
+        return ResponseEntity.status(201).body(post);
     }
 
     @PutMapping("/posts/{id}")
@@ -54,7 +55,12 @@ public class PostController {
     }
 
     @DeleteMapping("/posts/{id}")
-    public void destroy(@PathVariable String id) {
-        posts.removeIf(p -> p.getTitle().equals(id));
+    public ResponseEntity<Void> destroy(@PathVariable String id) {
+        var check = posts.removeIf(p -> p.getTitle().equals(id));
+        if (check) {
+            return ResponseEntity.noContent().build();
+        } else {
+            return ResponseEntity.notFound().build();
+        }
     }
 }

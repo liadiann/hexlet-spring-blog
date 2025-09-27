@@ -1,28 +1,32 @@
 package io.hexlet.spring.controller;
 
 import io.hexlet.spring.model.User;
+import io.hexlet.spring.repository.UserRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/users")
 public class UserController {
-    private List<User> users = new ArrayList<>();
+
+    private UserRepository userRepository;
+
+    public UserController(UserRepository userRepository) {
+        this.userRepository = userRepository;
+    }
 
     @GetMapping
-    public ResponseEntity<List<User>> index(@RequestParam(defaultValue = "10") Integer limit) {
-        return ResponseEntity.ok().body(users.stream().limit(limit).toList());
+    public ResponseEntity<List<User>> index() {
+        var users = userRepository.findAll();
+        return ResponseEntity.ok().body(users);
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<User> show(@PathVariable Long id) {
-        var user = users.stream()
-                .filter(u -> u.getId().equals(id))
-                .findFirst();
+        var user = userRepository.findById(id);
         return ResponseEntity.of(user);
     }
 
@@ -32,21 +36,21 @@ public class UserController {
         if (user.getEmail().isEmpty()) {
             return null;
         }
-        users.add(user);
+        userRepository.save(user);
         return user;
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<User> update(@PathVariable Long id, @RequestBody User data) {
-        var maybeUser = users.stream()
-                .filter(u -> u.getId().equals(id))
-                .findFirst();
+        var maybeUser = userRepository.findById(id);
         var status = HttpStatus.NOT_FOUND;
         if (maybeUser.isPresent()) {
             var user = maybeUser.get();
             user.setId(data.getId());
-            user.setName(data.getName());
+            user.setFirstName(data.getFirstName());
+            user.setLastName(data.getLastName());
             user.setEmail(data.getEmail());
+            userRepository.save(user);
             status = HttpStatus.OK;
         }
         return ResponseEntity.status(status).body(data);
@@ -54,8 +58,8 @@ public class UserController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> destroy(@PathVariable Long id) {
-        var check = users.removeIf(u -> u.getId().equals(id));
-        if (check) {
+        if (userRepository.existsById(id)) {
+            userRepository.deleteById(id);
             return ResponseEntity.noContent().build();
         } else {
             return ResponseEntity.notFound().build();

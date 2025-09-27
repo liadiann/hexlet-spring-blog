@@ -1,14 +1,21 @@
 package io.hexlet.spring.model;
 
+import static jakarta.persistence.GenerationType.IDENTITY;
+
+import jakarta.persistence.*;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+@Entity
+@Table(name = "users")
 @Getter
 @Setter
-@NoArgsConstructor
 public class User {
+    @Id
+    @GeneratedValue(strategy = IDENTITY)
     private Long id;
-    private String name;
+    private String firstName;
+    private String lastName;
+    @Column(nullable = false)
     private String email;
 }

@@ -1,5 +1,6 @@
 package io.hexlet.spring.controller;
 
+import io.hexlet.spring.exception.ResourceNotFoundException;
 import io.hexlet.spring.model.User;
 import io.hexlet.spring.repository.UserRepository;
 import org.springframework.http.HttpStatus;
@@ -25,9 +26,11 @@ public class UserController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<User> show(@PathVariable Long id) {
-        var user = userRepository.findById(id);
-        return ResponseEntity.of(user);
+    @ResponseStatus(HttpStatus.OK)
+    public User show(@PathVariable Long id) {
+        var user = userRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException(id + " not found"));
+        return user;
     }
 
     @PostMapping
@@ -36,34 +39,27 @@ public class UserController {
         if (user.getEmail().isEmpty()) {
             return null;
         }
-        userRepository.save(user);
-        return user;
+        var savedUser = userRepository.save(user);
+        return savedUser;
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<User> update(@PathVariable Long id, @RequestBody User data) {
-        var maybeUser = userRepository.findById(id);
-        var status = HttpStatus.NOT_FOUND;
-        if (maybeUser.isPresent()) {
-            var user = maybeUser.get();
-            user.setId(data.getId());
-            user.setFirstName(data.getFirstName());
-            user.setLastName(data.getLastName());
-            user.setEmail(data.getEmail());
-            userRepository.save(user);
-            status = HttpStatus.OK;
-        }
-        return ResponseEntity.status(status).body(data);
+    @ResponseStatus(HttpStatus.OK)
+    public User update(@PathVariable Long id, @RequestBody User data) {
+        var user = userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException(id + " not found"));
+        user.setId(data.getId());
+        user.setFirstName(data.getFirstName());
+        user.setLastName(data.getLastName());
+        user.setEmail(data.getEmail());
+        userRepository.save(user);
+        return data;
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> destroy(@PathVariable Long id) {
-        if (userRepository.existsById(id)) {
-            userRepository.deleteById(id);
-            return ResponseEntity.noContent().build();
-        } else {
-            return ResponseEntity.notFound().build();
-        }
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void destroy(@PathVariable Long id) {
+        userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException(id + " not found"));
+        userRepository.deleteById(id);
     }
 
 }

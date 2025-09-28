@@ -3,6 +3,7 @@ package io.hexlet.spring.model;
 import static jakarta.persistence.GenerationType.IDENTITY;
 
 import jakarta.persistence.*;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -10,6 +11,7 @@ import lombok.Setter;
 @Table(name = "users")
 @Getter
 @Setter
+@EqualsAndHashCode(of = {"id"})
 public class User {
     @Id
     @GeneratedValue(strategy = IDENTITY)

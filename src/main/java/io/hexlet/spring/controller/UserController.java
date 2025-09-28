@@ -47,7 +47,6 @@ public class UserController {
     @ResponseStatus(HttpStatus.OK)
     public User update(@PathVariable Long id, @RequestBody User data) {
         var user = userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException(id + " not found"));
-        user.setId(data.getId());
         user.setFirstName(data.getFirstName());
         user.setLastName(data.getLastName());
         user.setEmail(data.getEmail());

@@ -47,7 +47,7 @@ public class PostController {
         post.setTitle(data.getTitle());
         post.setPublished(data.getPublished());
         postRepository.save(post);
-        return data;
+        return post;
     }
 
     @DeleteMapping("/{id}")

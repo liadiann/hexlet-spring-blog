@@ -51,7 +51,7 @@ public class UserController {
         user.setLastName(data.getLastName());
         user.setEmail(data.getEmail());
         userRepository.save(user);
-        return data;
+        return user;
     }
 
     @DeleteMapping("/{id}")

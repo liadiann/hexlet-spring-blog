@@ -1,4 +1,4 @@
-package io.hexlet.spring.controller;
+package io.hexlet.spring.controller.api;
 
 import io.hexlet.spring.exception.ResourceNotFoundException;
 import io.hexlet.spring.model.User;
@@ -47,9 +47,15 @@ public class UserController {
     @ResponseStatus(HttpStatus.OK)
     public User update(@PathVariable Long id, @RequestBody User data) {
         var user = userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException(id + " not found"));
-        user.setFirstName(data.getFirstName());
-        user.setLastName(data.getLastName());
-        user.setEmail(data.getEmail());
+        if (data.getFirstName() != null) {
+            user.setFirstName(data.getFirstName());
+        }
+        if (data.getLastName() != null) {
+            user.setLastName(data.getLastName());
+        }
+        if (data.getEmail() != null) {
+            user.setEmail(data.getEmail());
+        }
         userRepository.save(user);
         return user;
     }

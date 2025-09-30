@@ -7,9 +7,11 @@
  */
 plugins {
     java
+    jacoco
     id("org.springframework.boot") version "3.5.6"
     id("io.spring.dependency-management") version "1.1.7"
     id("io.freefair.lombok") version "8.6"
+    id("org.sonarqube") version "6.2.0.5505"
 }
 
 group = "io.hexlet"
@@ -25,10 +27,35 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-devtools")
     implementation ("org.springframework.boot:spring-boot-starter-data-jpa")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
+    testImplementation(platform("org.junit:junit-bom:5.10.0"))
+    testImplementation("org.junit.jupiter:junit-jupiter:5.10.0")
+    testImplementation("org.springframework.security:spring-security-test")
+    testImplementation("net.javacrumbs.json-unit:json-unit-assertj:3.2.2")
+    testImplementation ("org.instancio:instancio-junit:5.5.1")
     implementation ("org.springframework.boot:spring-boot-starter-validation")
+    implementation("net.datafaker:datafaker:2.5.1")
     runtimeOnly("com.h2database:h2")
 }
 
 tasks.withType<Test> {
     useJUnitPlatform()
+}
+
+sonar {
+    properties {
+        property("sonar.projectKey", "liadiann_hexlet-spring-blog")
+        property("sonar.organization", "liadiann")
+    }
+}
+
+tasks.jacocoTestReport {
+    dependsOn(tasks.test)
+    reports {
+        xml.required.set(true)
+        html.required.set(true)
+    }
+}
+
+tasks.check {
+    dependsOn(tasks.jacocoTestReport)
 }

@@ -24,7 +24,6 @@ public class User {
     private Long id;
     private String firstName;
     private String lastName;
-    @Column(nullable = false)
     private String email;
     @CreatedDate
     @Column(nullable = false, updatable = false)

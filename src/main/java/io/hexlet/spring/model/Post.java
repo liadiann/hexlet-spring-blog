@@ -23,8 +23,6 @@ public class Post {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    @NotBlank(message = "Заголовок не должен быть пустым")
-    @Size(min = 10, message = "Заголовок должен быть не короче 10 символов")
     private String title;
     private String content;
     private Boolean published;

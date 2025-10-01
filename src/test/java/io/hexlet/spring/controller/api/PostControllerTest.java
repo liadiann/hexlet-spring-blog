@@ -63,7 +63,11 @@ public class PostControllerTest {
                 .andReturn()
                 .getResponse();
         var body = response.getContentAsString();
-        assertThatJson(body).isObject();
+        assertThatJson(body).and(
+                v -> v.node("title").isEqualTo(post.getTitle()),
+                v -> v.node("content").isEqualTo(post.getContent()),
+                v -> v.node("published").isEqualTo(post.getPublished())
+        );
     }
 
     @Test
@@ -106,5 +110,7 @@ public class PostControllerTest {
         mockMvc.perform(delete("/api/posts/" + post.getId()))
                 .andExpect(status().isNoContent())
                 .andExpect(content().string(""));
+        post = postRepository.findById(post.getId()).orElse(null);
+        assertThat(post).isNull();
     }
 }

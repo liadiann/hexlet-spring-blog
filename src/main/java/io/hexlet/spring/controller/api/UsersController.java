@@ -1,51 +1,54 @@
 package io.hexlet.spring.controller.api;
 
+import io.hexlet.spring.dto.UserDTO;
 import io.hexlet.spring.exception.ResourceNotFoundException;
+import io.hexlet.spring.mapper.UserMapper;
 import io.hexlet.spring.model.User;
 import io.hexlet.spring.repository.UserRepository;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/users")
-public class UserController {
+public class UsersController {
 
-    private UserRepository userRepository;
+    private final UserRepository userRepository;
+    private final UserMapper userMapper;
 
-    public UserController(UserRepository userRepository) {
+    public UsersController(UserRepository userRepository, UserMapper userMapper) {
         this.userRepository = userRepository;
+        this.userMapper = userMapper;
     }
 
     @GetMapping
-    public ResponseEntity<List<User>> index() {
+    @ResponseStatus(HttpStatus.OK)
+    public List<UserDTO> index() {
         var users = userRepository.findAll();
-        return ResponseEntity.ok().body(users);
+        return users.stream()
+                .map(userMapper::toDTO)
+                .toList();
     }
 
     @GetMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
-    public User show(@PathVariable Long id) {
+    public UserDTO show(@PathVariable Long id) {
         var user = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(id + " not found"));
-        return user;
+        return userMapper.toDTO(user);
     }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public User create(@RequestBody User user) {
-        if (user.getEmail().isEmpty()) {
-            return null;
-        }
+    public UserDTO create(@RequestBody User user) {
         var savedUser = userRepository.save(user);
-        return savedUser;
+        return userMapper.toDTO(savedUser);
     }
 
     @PutMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
-    public User update(@PathVariable Long id, @RequestBody User data) {
+    public UserDTO update(@PathVariable Long id, @RequestBody User data) {
         var user = userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException(id + " not found"));
         if (data.getFirstName() != null) {
             user.setFirstName(data.getFirstName());
@@ -57,7 +60,7 @@ public class UserController {
             user.setEmail(data.getEmail());
         }
         userRepository.save(user);
-        return user;
+        return userMapper.toDTO(user);
     }
 
     @DeleteMapping("/{id}")

@@ -63,7 +63,11 @@ public class UserControllerTest {
                 .andExpect(status().isOk())
                 .andReturn();
         var body = result.getResponse().getContentAsString();
-        assertThatJson(body).isObject();
+        assertThatJson(body).and(
+                v -> v.node("firstName").isEqualTo(user.getFirstName()),
+                v -> v.node("lastName").isEqualTo(user.getLastName()),
+                v -> v.node("email").isEqualTo(user.getEmail())
+        );
     }
 
     @Test
@@ -89,6 +93,8 @@ public class UserControllerTest {
         mockMvc.perform(delete("/api/users/" + user.getId()))
                 .andExpect(status().isNoContent())
                 .andExpect(content().string(""));
+        user = userRepository.findById(user.getId()).orElse(null);
+        assertThat(user).isNull();
     }
 
     @Test

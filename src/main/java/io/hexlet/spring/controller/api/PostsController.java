@@ -1,10 +1,12 @@
 package io.hexlet.spring.controller.api;
 
+import io.hexlet.spring.dto.PostCreateDTO;
 import io.hexlet.spring.dto.PostDTO;
 import io.hexlet.spring.exception.ResourceNotFoundException;
 import io.hexlet.spring.mapper.PostMapper;
 import io.hexlet.spring.model.Post;
 import io.hexlet.spring.repository.PostRepository;
+import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -41,7 +43,8 @@ public class PostsController {
     }
 
     @PostMapping
-    public ResponseEntity<PostDTO> create(@RequestBody Post post) {
+    public ResponseEntity<PostDTO> create(@Valid @RequestBody PostCreateDTO postData) {
+        var post = postMapper.toEntity(postData);
         var savedPost = postRepository.save(post);
         return ResponseEntity.status(HttpStatus.CREATED).body(postMapper.toDTO(savedPost));
     }

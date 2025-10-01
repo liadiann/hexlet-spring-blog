@@ -6,6 +6,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.hexlet.spring.dto.PostCreateDTO;
 import io.hexlet.spring.model.Post;
 import io.hexlet.spring.repository.PostRepository;
 import net.datafaker.Faker;
@@ -72,8 +73,7 @@ public class PostControllerTest {
 
     @Test
     public void testCreate() throws Exception {
-        var data = Instancio.of(Post.class)
-                .ignore(Select.field(Post::getId))
+        var data = Instancio.of(PostCreateDTO.class)
                 .create();
         var request = post("/api/posts")
                 .contentType(MediaType.APPLICATION_JSON)

@@ -1,5 +1,6 @@
 package io.hexlet.spring.controller.api;
 
+import io.hexlet.spring.dto.UserCreateDTO;
 import io.hexlet.spring.dto.UserDTO;
 import io.hexlet.spring.exception.ResourceNotFoundException;
 import io.hexlet.spring.mapper.UserMapper;
@@ -41,7 +42,8 @@ public class UsersController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public UserDTO create(@RequestBody User user) {
+    public UserDTO create(@RequestBody UserCreateDTO userData) {
+        var user = userMapper.toEntity(userData);
         var savedUser = userRepository.save(user);
         return userMapper.toDTO(savedUser);
     }

@@ -1,5 +1,6 @@
 package io.hexlet.spring.mapper;
 
+import io.hexlet.spring.dto.UserCreateDTO;
 import io.hexlet.spring.dto.UserDTO;
 import io.hexlet.spring.model.User;
 import org.springframework.stereotype.Component;
@@ -14,5 +15,13 @@ public class UserMapper {
         dto.setEmail(user.getEmail());
         dto.setCreatedAt(user.getCreatedAt());
         return dto;
+    }
+
+    public User toEntity(UserCreateDTO dto) {
+        var user = new User();
+        user.setFirstName(dto.getFirstName());
+        user.setLastName(dto.getLastName());
+        user.setEmail(dto.getEmail());
+        return user;
     }
 }

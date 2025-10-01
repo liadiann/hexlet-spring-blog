@@ -5,11 +5,10 @@ import jakarta.validation.constraints.Size;
 import lombok.Getter;
 
 @Getter
-public class PostCreateDTO {
+public class PostUpdateDTO {
     @NotBlank
     @Size(min = 1, max = 15)
     private String title;
     @NotBlank
     private String content;
-    private Boolean published;
 }

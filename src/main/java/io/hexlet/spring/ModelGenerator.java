@@ -30,8 +30,10 @@ public class ModelGenerator {
             userRepository.save(user);
 
             var post = new Post();
-            post.setTitle(faker.book().title());
-            post.setContent(faker.lorem().paragraph());
+            var title = faker.book().title();
+            title = title.length() > 15 ? title.substring(0, 15) : title;
+            post.setTitle(title);
+            post.setContent(faker.lorem().paragraph().substring(0, 10));
             post.setPublished(faker.bool().bool());
             postRepository.save(post);
         }

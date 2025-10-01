@@ -24,4 +24,11 @@ public class UserMapper {
         user.setEmail(dto.getEmail());
         return user;
     }
+
+    public User toEntity(UserCreateDTO dto, User user) {
+        user.setFirstName(dto.getFirstName());
+        user.setLastName(dto.getLastName());
+        user.setEmail(dto.getEmail());
+        return user;
+    }
 }

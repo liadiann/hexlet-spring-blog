@@ -91,6 +91,7 @@ public class PostControllerTest {
     public void testUpdate() throws Exception {
         var data = new HashMap<String, String>();
         data.put("title", "I love you");
+        data.put("content", "Hahahahaha");
 
         var request = put("/api/posts/" + post.getId())
                 .contentType(MediaType.APPLICATION_JSON)
@@ -103,6 +104,7 @@ public class PostControllerTest {
         assertThatJson(body).isObject();
         post = postRepository.findById(post.getId()).get();
         assertThat(post.getTitle()).isEqualTo("I love you");
+        assertThat(post.getContent()).isEqualTo(data.get("content"));
     }
 
     @Test

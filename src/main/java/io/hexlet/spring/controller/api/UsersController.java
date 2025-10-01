@@ -6,6 +6,7 @@ import io.hexlet.spring.exception.ResourceNotFoundException;
 import io.hexlet.spring.mapper.UserMapper;
 import io.hexlet.spring.model.User;
 import io.hexlet.spring.repository.UserRepository;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
@@ -42,7 +43,7 @@ public class UsersController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public UserDTO create(@RequestBody UserCreateDTO userData) {
+    public UserDTO create(@RequestBody @Valid UserCreateDTO userData) {
         var user = userMapper.toEntity(userData);
         var savedUser = userRepository.save(user);
         return userMapper.toDTO(savedUser);
@@ -50,17 +51,9 @@ public class UsersController {
 
     @PutMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
-    public UserDTO update(@PathVariable Long id, @RequestBody User data) {
+    public UserDTO update(@PathVariable Long id, @RequestBody @Valid UserCreateDTO userData) {
         var user = userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException(id + " not found"));
-        if (data.getFirstName() != null) {
-            user.setFirstName(data.getFirstName());
-        }
-        if (data.getLastName() != null) {
-            user.setLastName(data.getLastName());
-        }
-        if (data.getEmail() != null) {
-            user.setEmail(data.getEmail());
-        }
+        userMapper.toEntity(userData, user);
         userRepository.save(user);
         return userMapper.toDTO(user);
     }

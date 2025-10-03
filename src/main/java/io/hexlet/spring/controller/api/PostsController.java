@@ -33,30 +33,30 @@ public class PostsController {
                                @RequestParam(defaultValue = "10") Integer limit) {
         var sort = Sort.by(Sort.Order.desc("createdAt"));
         var pageRequest = PageRequest.of(page - 1, limit, sort);
-        return postRepository.findByPublishedTrue(pageRequest).map(postMapper::toDTO);
+        return postRepository.findByPublishedTrue(pageRequest).map(postMapper::map);
     }
 
     @GetMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
     public PostDTO show(@PathVariable Long id) {
         var post = postRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException(id + " not found"));
-        return postMapper.toDTO(post);
+        return postMapper.map(post);
     }
 
     @PostMapping
     public ResponseEntity<PostDTO> create(@Valid @RequestBody PostCreateDTO postData) {
-        var post = postMapper.toEntity(postData);
+        var post = postMapper.map(postData);
         var savedPost = postRepository.save(post);
-        return ResponseEntity.status(HttpStatus.CREATED).body(postMapper.toDTO(savedPost));
+        return ResponseEntity.status(HttpStatus.CREATED).body(postMapper.map(savedPost));
     }
 
     @PutMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
     public PostDTO update(@PathVariable Long id, @Valid @RequestBody PostUpdateDTO postData) {
         var post = postRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException(id + " not found"));
-        postMapper.toEntity(postData, post);
+        postMapper.update(postData, post);
         postRepository.save(post);
-        return postMapper.toDTO(post);
+        return postMapper.map(post);
     }
 
     @DeleteMapping("/{id}")

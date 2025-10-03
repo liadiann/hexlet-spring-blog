@@ -12,6 +12,7 @@ plugins {
     id("io.spring.dependency-management") version "1.1.7"
     id("io.freefair.lombok") version "8.6"
     id("org.sonarqube") version "6.2.0.5505"
+    kotlin("kapt") version "1.9.25"
 }
 
 group = "io.hexlet"
@@ -34,6 +35,8 @@ dependencies {
     testImplementation ("org.instancio:instancio-junit:5.5.1")
     implementation ("org.springframework.boot:spring-boot-starter-validation")
     implementation("net.datafaker:datafaker:2.5.1")
+    implementation ("org.mapstruct:mapstruct:1.6.3")
+    annotationProcessor ("org.mapstruct:mapstruct-processor:1.6.3")
     runtimeOnly("com.h2database:h2")
 }
 

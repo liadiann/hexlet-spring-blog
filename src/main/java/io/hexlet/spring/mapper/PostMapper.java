@@ -4,31 +4,15 @@ import io.hexlet.spring.dto.PostCreateDTO;
 import io.hexlet.spring.dto.PostDTO;
 import io.hexlet.spring.dto.PostUpdateDTO;
 import io.hexlet.spring.model.Post;
-import org.springframework.stereotype.Component;
+import org.mapstruct.*;
 
-@Component
-public class PostMapper {
-    public PostDTO toDTO(Post post) {
-        var dto = new PostDTO();
-        dto.setId(post.getId());
-        dto.setTitle(post.getTitle());
-        dto.setContent(post.getContent());
-        dto.setPublished(post.getPublished());
-        dto.setCreatedAt(post.getCreatedAt());
-        return dto;
-    }
-
-    public Post toEntity(PostCreateDTO dto) {
-        var post = new Post();
-        post.setTitle(dto.getTitle());
-        post.setContent(dto.getContent());
-        post.setPublished(dto.getPublished());
-        return post;
-    }
-
-    public Post toEntity(PostUpdateDTO dto, Post post) {
-        post.setTitle(dto.getTitle());
-        post.setContent(dto.getContent());
-        return post;
-    }
+@Mapper(
+        componentModel = MappingConstants.ComponentModel.SPRING,
+        nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE,
+        unmappedTargetPolicy = ReportingPolicy.IGNORE
+)
+public abstract class PostMapper {
+    public abstract PostDTO map(Post post);
+    public abstract Post map(PostCreateDTO dto);
+    public abstract void update(PostUpdateDTO dto, @MappingTarget Post post);
 }

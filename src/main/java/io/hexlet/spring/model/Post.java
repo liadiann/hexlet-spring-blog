@@ -23,7 +23,10 @@ public class Post {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+    @NotBlank
+    @Size(min = 1, max = 15)
     private String title;
+    @NotBlank
     private String content;
     private Boolean published;
     @CreatedDate

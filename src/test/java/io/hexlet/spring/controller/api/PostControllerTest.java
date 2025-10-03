@@ -32,9 +32,6 @@ public class PostControllerTest {
     private PostRepository postRepository;
 
     @Autowired
-    private Faker faker;
-
-    @Autowired
     private ObjectMapper om;
 
     private Post post;

@@ -2,33 +2,19 @@ package io.hexlet.spring.mapper;
 
 import io.hexlet.spring.dto.UserCreateDTO;
 import io.hexlet.spring.dto.UserDTO;
+import io.hexlet.spring.dto.UserUpdateDTO;
 import io.hexlet.spring.model.User;
-import org.springframework.stereotype.Component;
+import jakarta.validation.Valid;
+import org.mapstruct.*;
 
-@Component
-public class UserMapper {
-    public UserDTO toDTO(User user) {
-        var dto = new UserDTO();
-        dto.setId(user.getId());
-        dto.setFirstName(user.getFirstName());
-        dto.setLastName(user.getLastName());
-        dto.setEmail(user.getEmail());
-        dto.setCreatedAt(user.getCreatedAt());
-        return dto;
-    }
 
-    public User toEntity(UserCreateDTO dto) {
-        var user = new User();
-        user.setFirstName(dto.getFirstName());
-        user.setLastName(dto.getLastName());
-        user.setEmail(dto.getEmail());
-        return user;
-    }
-
-    public User toEntity(UserCreateDTO dto, User user) {
-        user.setFirstName(dto.getFirstName());
-        user.setLastName(dto.getLastName());
-        user.setEmail(dto.getEmail());
-        return user;
-    }
+@Mapper(
+        componentModel = MappingConstants.ComponentModel.SPRING,
+        nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE,
+        unmappedTargetPolicy = ReportingPolicy.IGNORE
+)
+public abstract class UserMapper {
+    public abstract UserDTO map(User user);
+    public abstract User map(UserCreateDTO dto);
+    public abstract void update(@Valid UserUpdateDTO dto, @MappingTarget User user);
 }

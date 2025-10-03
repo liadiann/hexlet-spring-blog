@@ -2,6 +2,7 @@ package io.hexlet.spring.controller.api;
 
 import io.hexlet.spring.dto.UserCreateDTO;
 import io.hexlet.spring.dto.UserDTO;
+import io.hexlet.spring.dto.UserUpdateDTO;
 import io.hexlet.spring.exception.ResourceNotFoundException;
 import io.hexlet.spring.mapper.UserMapper;
 import io.hexlet.spring.model.User;
@@ -29,7 +30,7 @@ public class UsersController {
     public List<UserDTO> index() {
         var users = userRepository.findAll();
         return users.stream()
-                .map(userMapper::toDTO)
+                .map(userMapper::map)
                 .toList();
     }
 
@@ -38,24 +39,24 @@ public class UsersController {
     public UserDTO show(@PathVariable Long id) {
         var user = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(id + " not found"));
-        return userMapper.toDTO(user);
+        return userMapper.map(user);
     }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public UserDTO create(@RequestBody @Valid UserCreateDTO userData) {
-        var user = userMapper.toEntity(userData);
+        var user = userMapper.map(userData);
         var savedUser = userRepository.save(user);
-        return userMapper.toDTO(savedUser);
+        return userMapper.map(savedUser);
     }
 
     @PutMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
-    public UserDTO update(@PathVariable Long id, @RequestBody @Valid UserCreateDTO userData) {
+    public UserDTO update(@PathVariable Long id, @RequestBody @Valid UserUpdateDTO userData) {
         var user = userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException(id + " not found"));
-        userMapper.toEntity(userData, user);
+        userMapper.update(userData, user);
         userRepository.save(user);
-        return userMapper.toDTO(user);
+        return userMapper.map(user);
     }
 
     @DeleteMapping("/{id}")

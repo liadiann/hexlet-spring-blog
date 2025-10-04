@@ -2,6 +2,7 @@ package io.hexlet.spring.controller.api;
 
 import io.hexlet.spring.dto.PostCreateDTO;
 import io.hexlet.spring.dto.PostDTO;
+import io.hexlet.spring.dto.PostPatchDTO;
 import io.hexlet.spring.dto.PostUpdateDTO;
 import io.hexlet.spring.exception.ResourceNotFoundException;
 import io.hexlet.spring.mapper.PostMapper;
@@ -54,6 +55,16 @@ public class PostsController {
     @ResponseStatus(HttpStatus.OK)
     public PostDTO update(@PathVariable Long id, @Valid @RequestBody PostUpdateDTO postData) {
         var post = postRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException(id + " not found"));
+        postMapper.update(postData, post);
+        postRepository.save(post);
+        return postMapper.map(post);
+    }
+
+    @PatchMapping("/{id}")
+    @ResponseStatus(HttpStatus.OK)
+    public PostDTO patchPost(@PathVariable Long id, @Valid @RequestBody PostPatchDTO postData) {
+        var post = postRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException(id + " not found"));
         postMapper.update(postData, post);
         postRepository.save(post);
         return postMapper.map(post);

@@ -118,4 +118,18 @@ public class UserControllerTest {
         assertThat(user.getLastName()).isEqualTo("Hunt");
         assertThat(user.getEmail()).isEqualTo(data.get("email"));
     }
+
+    @Test
+    public void testPatch() throws Exception {
+        var data = new HashMap<String, String>();
+        data.put("firstName", "Ethan");
+        var request = patch("/api/users/" + user.getId())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(om.writeValueAsString(data));
+        mockMvc.perform(request)
+                .andExpect(status().isOk())
+                .andReturn();
+        user = userRepository.findById(user.getId()).get();
+        assertThat(user.getFirstName()).isEqualTo(data.get("firstName"));
+    }
 }

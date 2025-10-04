@@ -105,6 +105,24 @@ public class PostControllerTest {
     }
 
     @Test
+    public void testPatch() throws Exception {
+        var data = new HashMap<String, String>();
+        data.put("title", "I love you");
+
+        var request = patch("/api/posts/" + post.getId())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(om.writeValueAsString(data));
+        var result = mockMvc.perform(request)
+                .andExpect(status().isOk())
+                .andReturn()
+                .getResponse();
+        var body = result.getContentAsString();
+        assertThatJson(body).isObject();
+        post = postRepository.findById(post.getId()).get();
+        assertThat(post.getTitle()).isEqualTo("I love you");
+    }
+
+    @Test
     public void testDestroy() throws Exception {
         mockMvc.perform(delete("/api/posts/" + post.getId()))
                 .andExpect(status().isNoContent())

@@ -37,6 +37,7 @@ dependencies {
     implementation("net.datafaker:datafaker:2.5.1")
     implementation ("org.mapstruct:mapstruct:1.6.3")
     annotationProcessor ("org.mapstruct:mapstruct-processor:1.6.3")
+    implementation("org.openapitools:jackson-databind-nullable:0.2.6")
     runtimeOnly("com.h2database:h2")
 }
 

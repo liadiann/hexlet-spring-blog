@@ -2,6 +2,7 @@ package io.hexlet.spring.controller.api;
 
 import io.hexlet.spring.dto.UserCreateDTO;
 import io.hexlet.spring.dto.UserDTO;
+import io.hexlet.spring.dto.UserPatchDTO;
 import io.hexlet.spring.dto.UserUpdateDTO;
 import io.hexlet.spring.exception.ResourceNotFoundException;
 import io.hexlet.spring.mapper.UserMapper;
@@ -54,6 +55,16 @@ public class UsersController {
     @ResponseStatus(HttpStatus.OK)
     public UserDTO update(@PathVariable Long id, @RequestBody @Valid UserUpdateDTO userData) {
         var user = userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException(id + " not found"));
+        userMapper.update(userData, user);
+        userRepository.save(user);
+        return userMapper.map(user);
+    }
+
+    @PatchMapping("/{id}")
+    @ResponseStatus(HttpStatus.OK)
+    public UserDTO patchUser(@PathVariable Long id, @RequestBody @Valid UserPatchDTO userData) {
+        var user = userRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException(id + " not found"));
         userMapper.update(userData, user);
         userRepository.save(user);
         return userMapper.map(user);

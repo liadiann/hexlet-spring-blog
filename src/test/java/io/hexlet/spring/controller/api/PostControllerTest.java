@@ -8,7 +8,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.hexlet.spring.dto.PostCreateDTO;
 import io.hexlet.spring.model.Post;
+import io.hexlet.spring.model.User;
 import io.hexlet.spring.repository.PostRepository;
+import io.hexlet.spring.repository.UserRepository;
 import net.datafaker.Faker;
 import org.instancio.Instancio;
 import org.instancio.Select;
@@ -32,16 +34,34 @@ public class PostControllerTest {
     private PostRepository postRepository;
 
     @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
+    private Faker faker;
+
+    @Autowired
     private ObjectMapper om;
 
     private Post post;
 
+    private User user;
+
     @BeforeEach
     public void beforeEach() {
         postRepository.deleteAll();
+        userRepository.deleteAll();
+        user = Instancio.of(User.class)
+                .ignore(Select.field(User::getId))
+                .ignore(Select.field(User::getPosts))
+                .supply(Select.field(User::getEmail), () -> faker.internet().emailAddress())
+                .create();
         post = Instancio.of(Post.class)
                 .ignore(Select.field(Post::getId))
+                .ignore(Select.field(Post::getAuthor))
                 .create();
+        post.setAuthor(user);
+        user.getPosts().add(post);
+        userRepository.save(user);
         postRepository.save(post);
     }
 
@@ -64,14 +84,17 @@ public class PostControllerTest {
         assertThatJson(body).and(
                 v -> v.node("title").isEqualTo(post.getTitle()),
                 v -> v.node("content").isEqualTo(post.getContent()),
-                v -> v.node("published").isEqualTo(post.getPublished())
+                v -> v.node("published").isEqualTo(post.getPublished()),
+                v -> v.node("authorId").isEqualTo(post.getAuthor().getId())
         );
     }
 
     @Test
     public void testCreate() throws Exception {
         var data = Instancio.of(PostCreateDTO.class)
+                .ignore(Select.field(PostCreateDTO::getAuthorId))
                 .create();
+        data.setAuthorId(user.getId());
         var request = post("/api/posts")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(om.writeValueAsString(data));

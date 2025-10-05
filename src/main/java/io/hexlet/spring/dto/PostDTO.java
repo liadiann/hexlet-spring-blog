@@ -12,5 +12,6 @@ public class PostDTO {
     private String title;
     private String content;
     private Boolean published;
+    private Long authorId;
     private LocalDateTime createdAt;
 }

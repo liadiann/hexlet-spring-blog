@@ -14,7 +14,9 @@ import org.mapstruct.*;
         unmappedTargetPolicy = ReportingPolicy.IGNORE
 )
 public abstract class PostMapper {
+    @Mapping(target = "authorId", source = "author.id")
     public abstract PostDTO map(Post post);
+    @Mapping(target = "author.id", source = "authorId")
     public abstract Post map(PostCreateDTO dto);
     public abstract void update(PostUpdateDTO dto, @MappingTarget Post post);
     public abstract void update(PostPatchDTO dto, @MappingTarget Post post);

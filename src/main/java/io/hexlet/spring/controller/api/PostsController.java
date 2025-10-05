@@ -6,8 +6,8 @@ import io.hexlet.spring.dto.PostPatchDTO;
 import io.hexlet.spring.dto.PostUpdateDTO;
 import io.hexlet.spring.exception.ResourceNotFoundException;
 import io.hexlet.spring.mapper.PostMapper;
-import io.hexlet.spring.model.Post;
 import io.hexlet.spring.repository.PostRepository;
+import io.hexlet.spring.repository.UserRepository;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -22,10 +22,12 @@ public class PostsController {
 
     private final PostRepository postRepository;
     private final PostMapper postMapper;
+    private final UserRepository userRepository;
 
-    public PostsController(PostRepository postRepository, PostMapper postMapper) {
+    public PostsController(PostRepository postRepository, UserRepository userRepository, PostMapper postMapper) {
         this.postRepository = postRepository;
         this.postMapper = postMapper;
+        this.userRepository = userRepository;
     }
 
     @GetMapping
@@ -46,9 +48,12 @@ public class PostsController {
 
     @PostMapping
     public ResponseEntity<PostDTO> create(@Valid @RequestBody PostCreateDTO postData) {
+        var user = userRepository.findById(postData.getAuthorId())
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
         var post = postMapper.map(postData);
-        var savedPost = postRepository.save(post);
-        return ResponseEntity.status(HttpStatus.CREATED).body(postMapper.map(savedPost));
+        post.setAuthor(user);
+        postRepository.save(post);
+        return ResponseEntity.status(HttpStatus.CREATED).body(postMapper.map(post));
     }
 
     @PutMapping("/{id}")

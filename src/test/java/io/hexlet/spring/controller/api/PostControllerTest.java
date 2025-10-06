@@ -6,7 +6,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.hexlet.spring.dto.PostCreateDTO;
+import io.hexlet.spring.dto.PostPatchDTO;
+import io.hexlet.spring.dto.PostUpdateDTO;
+import io.hexlet.spring.mapper.PostMapper;
 import io.hexlet.spring.model.Post;
 import io.hexlet.spring.model.User;
 import io.hexlet.spring.repository.PostRepository;
@@ -16,13 +18,13 @@ import org.instancio.Instancio;
 import org.instancio.Select;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.openapitools.jackson.nullable.JsonNullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.util.HashMap;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -35,6 +37,9 @@ public class PostControllerTest {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private PostMapper postMapper;
 
     @Autowired
     private Faker faker;
@@ -62,11 +67,11 @@ public class PostControllerTest {
         post.setAuthor(user);
         user.getPosts().add(post);
         userRepository.save(user);
-        postRepository.save(post);
     }
 
     @Test
     public void testIndex() throws Exception {
+        postRepository.save(post);
         mockMvc.perform(get("/api/posts")
                         .param("page", "1")
                         .param("limit", "5"))
@@ -76,6 +81,7 @@ public class PostControllerTest {
 
     @Test
     public void testShow() throws Exception {
+        postRepository.save(post);
         var response = mockMvc.perform(get("/api/posts/" + post.getId()))
                 .andExpect(status().isOk())
                 .andReturn()
@@ -91,13 +97,10 @@ public class PostControllerTest {
 
     @Test
     public void testCreate() throws Exception {
-        var data = Instancio.of(PostCreateDTO.class)
-                .ignore(Select.field(PostCreateDTO::getAuthorId))
-                .create();
-        data.setAuthorId(user.getId());
+        var dto = postMapper.map(post);
         var request = post("/api/posts")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(om.writeValueAsString(data));
+                .content(om.writeValueAsString(dto));
         var response = mockMvc.perform(request)
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id").exists())
@@ -109,13 +112,14 @@ public class PostControllerTest {
 
     @Test
     public void testUpdate() throws Exception {
-        var data = new HashMap<String, String>();
-        data.put("title", "I love you");
-        data.put("content", "Hahahahaha");
+        postRepository.save(post);
+        var dto = new PostUpdateDTO();
+        dto.setTitle("I love you");
+        dto.setContent("Hahahahaha");
 
         var request = put("/api/posts/" + post.getId())
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(om.writeValueAsString(data));
+                .content(om.writeValueAsString(dto));
         var result = mockMvc.perform(request)
                 .andExpect(status().isOk())
                 .andReturn()
@@ -123,18 +127,19 @@ public class PostControllerTest {
         var body = result.getContentAsString();
         assertThatJson(body).isObject();
         post = postRepository.findById(post.getId()).get();
-        assertThat(post.getTitle()).isEqualTo("I love you");
-        assertThat(post.getContent()).isEqualTo(data.get("content"));
+        assertThat(post.getTitle()).isEqualTo(dto.getTitle());
+        assertThat(post.getContent()).isEqualTo(dto.getContent());
     }
 
     @Test
     public void testPatch() throws Exception {
-        var data = new HashMap<String, String>();
-        data.put("title", "I love you");
+        postRepository.save(post);
+        var dto = new PostPatchDTO();
+        dto.setTitle(JsonNullable.of("I love you"));
 
         var request = patch("/api/posts/" + post.getId())
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(om.writeValueAsString(data));
+                .content(om.writeValueAsString(dto));
         var result = mockMvc.perform(request)
                 .andExpect(status().isOk())
                 .andReturn()
@@ -142,11 +147,12 @@ public class PostControllerTest {
         var body = result.getContentAsString();
         assertThatJson(body).isObject();
         post = postRepository.findById(post.getId()).get();
-        assertThat(post.getTitle()).isEqualTo("I love you");
+        assertThat(post.getTitle()).isEqualTo(dto.getTitle().get());
     }
 
     @Test
     public void testDestroy() throws Exception {
+        postRepository.save(post);
         mockMvc.perform(delete("/api/posts/" + post.getId()))
                 .andExpect(status().isNoContent())
                 .andExpect(content().string(""));

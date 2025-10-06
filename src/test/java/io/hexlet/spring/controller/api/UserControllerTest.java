@@ -7,6 +7,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.hexlet.spring.dto.UserCreateDTO;
+import io.hexlet.spring.dto.UserPatchDTO;
+import io.hexlet.spring.dto.UserUpdateDTO;
+import io.hexlet.spring.mapper.UserMapper;
 import io.hexlet.spring.model.User;
 import io.hexlet.spring.repository.UserRepository;
 import net.datafaker.Faker;
@@ -14,6 +17,7 @@ import org.instancio.Instancio;
 import org.instancio.Select;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.openapitools.jackson.nullable.JsonNullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -32,6 +36,9 @@ public class UserControllerTest {
     private UserRepository userRepository;
 
     @Autowired
+    private UserMapper userMapper;
+
+    @Autowired
     private Faker faker;
 
     @Autowired
@@ -47,11 +54,11 @@ public class UserControllerTest {
                 .ignore(Select.field(User::getPosts)).ignore(Select.field(User::getPosts))
                 .supply(Select.field(User::getEmail), () -> faker.internet().emailAddress())
                 .create();
-        userRepository.save(user);
     }
 
     @Test
     public void testIndex() throws Exception {
+        userRepository.save(user);
         var result = mockMvc.perform(get("/api/users"))
                 .andExpect(status().isOk())
                 .andReturn();
@@ -61,6 +68,7 @@ public class UserControllerTest {
 
     @Test
     public void testShow() throws Exception {
+        userRepository.save(user);
         var result = mockMvc.perform(get("/api/users/" + user.getId()))
                 .andExpect(status().isOk())
                 .andReturn();
@@ -74,12 +82,10 @@ public class UserControllerTest {
 
     @Test
     public void testCreate() throws Exception {
-        var data = Instancio.of(UserCreateDTO.class)
-                .supply(Select.field(UserCreateDTO::getEmail), () -> faker.internet().emailAddress())
-                .create();
+        var dto = userMapper.map(user);
         var request = post("/api/users")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(om.writeValueAsString(data));
+                .content(om.writeValueAsString(dto));
         var result = mockMvc.perform(request)
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id").exists())
@@ -91,6 +97,7 @@ public class UserControllerTest {
 
     @Test
     public void testDestroy() throws Exception {
+        userRepository.save(user);
         mockMvc.perform(delete("/api/users/" + user.getId()))
                 .andExpect(status().isNoContent())
                 .andExpect(content().string(""));
@@ -100,14 +107,15 @@ public class UserControllerTest {
 
     @Test
     public void testUpdate() throws Exception {
-        var data = new HashMap<String, String>();
-        data.put("firstName", "Ethan");
-        data.put("lastName", "Hunt");
-        data.put("email", "adfg@gmail.com");
+        userRepository.save(user);
+        var dto = new UserUpdateDTO();
+        dto.setFirstName("Ethan");
+        dto.setLastName("Hunt");
+        dto.setEmail("adfg@gmail.com");
 
         var request = put("/api/users/" + user.getId())
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(om.writeValueAsString(data));
+                .content(om.writeValueAsString(dto));
 
         var response = mockMvc.perform(request)
                 .andExpect(status().isOk())
@@ -115,22 +123,23 @@ public class UserControllerTest {
         var body = response.getResponse().getContentAsString();
         assertThatJson(body).isObject();
         user = userRepository.findById(user.getId()).get();
-        assertThat(user.getFirstName()).isEqualTo("Ethan");
-        assertThat(user.getLastName()).isEqualTo("Hunt");
-        assertThat(user.getEmail()).isEqualTo(data.get("email"));
+        assertThat(user.getFirstName()).isEqualTo(dto.getFirstName());
+        assertThat(user.getLastName()).isEqualTo(dto.getLastName());
+        assertThat(user.getEmail()).isEqualTo(dto.getEmail());
     }
 
     @Test
     public void testPatch() throws Exception {
-        var data = new HashMap<String, String>();
-        data.put("firstName", "Ethan");
+        userRepository.save(user);
+        var dto = new UserPatchDTO();
+        dto.setFirstName(JsonNullable.of("Ethan"));
         var request = patch("/api/users/" + user.getId())
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(om.writeValueAsString(data));
+                .content(om.writeValueAsString(dto));
         mockMvc.perform(request)
                 .andExpect(status().isOk())
                 .andReturn();
         user = userRepository.findById(user.getId()).get();
-        assertThat(user.getFirstName()).isEqualTo(data.get("firstName"));
+        assertThat(user.getFirstName()).isEqualTo(dto.getFirstName().get());
     }
 }

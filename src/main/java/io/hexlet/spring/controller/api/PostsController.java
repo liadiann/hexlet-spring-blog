@@ -1,13 +1,11 @@
 package io.hexlet.spring.controller.api;
 
-import io.hexlet.spring.dto.PostCreateDTO;
-import io.hexlet.spring.dto.PostDTO;
-import io.hexlet.spring.dto.PostPatchDTO;
-import io.hexlet.spring.dto.PostUpdateDTO;
+import io.hexlet.spring.dto.*;
 import io.hexlet.spring.exception.ResourceNotFoundException;
 import io.hexlet.spring.mapper.PostMapper;
 import io.hexlet.spring.repository.PostRepository;
 import io.hexlet.spring.repository.UserRepository;
+import io.hexlet.spring.specification.PostSpecification;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -23,20 +21,22 @@ public class PostsController {
     private final PostRepository postRepository;
     private final PostMapper postMapper;
     private final UserRepository userRepository;
+    private PostSpecification specBuilder;
 
-    public PostsController(PostRepository postRepository, UserRepository userRepository, PostMapper postMapper) {
+    public PostsController(PostRepository postRepository, UserRepository userRepository, PostMapper postMapper,
+                           PostSpecification specBuilder) {
         this.postRepository = postRepository;
         this.postMapper = postMapper;
         this.userRepository = userRepository;
+        this.specBuilder = specBuilder;
     }
 
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
-    public Page<PostDTO> index(@RequestParam(defaultValue = "1") Integer page,
-                               @RequestParam(defaultValue = "10") Integer limit) {
-        var sort = Sort.by(Sort.Order.desc("createdAt"));
-        var pageRequest = PageRequest.of(page - 1, limit, sort);
-        return postRepository.findByPublishedTrue(pageRequest).map(postMapper::map);
+    public Page<PostDTO> index(PostParamsDTO params, @RequestParam(defaultValue = "1") Integer page) {
+        var spec = specBuilder.build(params);
+        var posts = postRepository.findAll(spec, PageRequest.of(page - 1, 10));
+        return posts.map(postMapper::map);
     }
 
     @GetMapping("/{id}")

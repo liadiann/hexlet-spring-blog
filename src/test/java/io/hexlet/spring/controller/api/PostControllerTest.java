@@ -73,8 +73,7 @@ public class PostControllerTest {
     public void testIndex() throws Exception {
         postRepository.save(post);
         mockMvc.perform(get("/api/posts")
-                        .param("page", "1")
-                        .param("limit", "5"))
+                        .param("page", "1"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content").isArray());
     }

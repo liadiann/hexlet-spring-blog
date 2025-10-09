@@ -1,5 +1,6 @@
 package io.hexlet.spring.controller.api;
 
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -22,6 +23,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.HashMap;
@@ -46,6 +48,8 @@ public class UserControllerTest {
 
     private User user;
 
+    private SecurityMockMvcRequestPostProcessors.JwtRequestPostProcessor token;
+
     @BeforeEach
     public void beforeEach() {
         userRepository.deleteAll();
@@ -54,12 +58,13 @@ public class UserControllerTest {
                 .ignore(Select.field(User::getPosts)).ignore(Select.field(User::getPosts))
                 .supply(Select.field(User::getEmail), () -> faker.internet().emailAddress())
                 .create();
+        token = jwt().jwt(builder -> builder.subject(user.getEmail()));
     }
 
     @Test
     public void testIndex() throws Exception {
         userRepository.save(user);
-        var result = mockMvc.perform(get("/api/users"))
+        var result = mockMvc.perform(get("/api/users").with(token))
                 .andExpect(status().isOk())
                 .andReturn();
         var body = result.getResponse().getContentAsString();
@@ -69,7 +74,7 @@ public class UserControllerTest {
     @Test
     public void testShow() throws Exception {
         userRepository.save(user);
-        var result = mockMvc.perform(get("/api/users/" + user.getId()))
+        var result = mockMvc.perform(get("/api/users/" + user.getId()).with(token))
                 .andExpect(status().isOk())
                 .andReturn();
         var body = result.getResponse().getContentAsString();
@@ -82,7 +87,9 @@ public class UserControllerTest {
 
     @Test
     public void testCreate() throws Exception {
-        var dto = userMapper.map(user);
+        var dto = Instancio.of(UserCreateDTO.class)
+                .supply(Select.field(UserCreateDTO::getEmail), () -> faker.internet().emailAddress())
+                .create();
         var request = post("/api/users")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(om.writeValueAsString(dto));
@@ -98,7 +105,7 @@ public class UserControllerTest {
     @Test
     public void testDestroy() throws Exception {
         userRepository.save(user);
-        mockMvc.perform(delete("/api/users/" + user.getId()))
+        mockMvc.perform(delete("/api/users/" + user.getId()).with(token))
                 .andExpect(status().isNoContent())
                 .andExpect(content().string(""));
         user = userRepository.findById(user.getId()).orElse(null);
@@ -114,6 +121,7 @@ public class UserControllerTest {
         dto.setEmail("adfg@gmail.com");
 
         var request = put("/api/users/" + user.getId())
+                .with(token)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(om.writeValueAsString(dto));
 
@@ -134,6 +142,7 @@ public class UserControllerTest {
         var dto = new UserPatchDTO();
         dto.setFirstName(JsonNullable.of("Ethan"));
         var request = patch("/api/users/" + user.getId())
+                .with(token)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(om.writeValueAsString(dto));
         mockMvc.perform(request)

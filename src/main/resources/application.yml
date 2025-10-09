@@ -20,5 +20,9 @@ logging:
   pattern:
     dateformat: "yyyy-MM-dd HH:mm:ss"
 
+rsa:
+  private-key: classpath:certs/private.pem
+  public-key: classpath:certs/public.pem
+
 app:
   welcome-message: "Welcome to Spring blog!"

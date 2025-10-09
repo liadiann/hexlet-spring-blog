@@ -1,5 +1,6 @@
 package io.hexlet.spring.controller.api;
 
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -23,6 +24,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
 import org.springframework.test.web.servlet.MockMvc;
 
 
@@ -51,6 +53,8 @@ public class PostControllerTest {
 
     private User user;
 
+    private SecurityMockMvcRequestPostProcessors.JwtRequestPostProcessor token;
+
     @BeforeEach
     public void beforeEach() {
         postRepository.deleteAll();
@@ -67,6 +71,7 @@ public class PostControllerTest {
         post.setAuthor(user);
         user.getPosts().add(post);
         userRepository.save(user);
+        token = jwt().jwt(builder -> builder.subject(user.getEmail()));
     }
 
     @Test
@@ -81,7 +86,7 @@ public class PostControllerTest {
     @Test
     public void testShow() throws Exception {
         postRepository.save(post);
-        var response = mockMvc.perform(get("/api/posts/" + post.getId()))
+        var response = mockMvc.perform(get("/api/posts/" + post.getId()).with(token))
                 .andExpect(status().isOk())
                 .andReturn()
                 .getResponse();
@@ -98,6 +103,7 @@ public class PostControllerTest {
     public void testCreate() throws Exception {
         var dto = postMapper.map(post);
         var request = post("/api/posts")
+                .with(token)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(om.writeValueAsString(dto));
         var response = mockMvc.perform(request)
@@ -117,6 +123,7 @@ public class PostControllerTest {
         dto.setContent("Hahahahaha");
 
         var request = put("/api/posts/" + post.getId())
+                .with(token)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(om.writeValueAsString(dto));
         var result = mockMvc.perform(request)
@@ -137,6 +144,7 @@ public class PostControllerTest {
         dto.setTitle(JsonNullable.of("I love you"));
 
         var request = patch("/api/posts/" + post.getId())
+                .with(token)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(om.writeValueAsString(dto));
         var result = mockMvc.perform(request)
@@ -152,7 +160,7 @@ public class PostControllerTest {
     @Test
     public void testDestroy() throws Exception {
         postRepository.save(post);
-        mockMvc.perform(delete("/api/posts/" + post.getId()))
+        mockMvc.perform(delete("/api/posts/" + post.getId()).with(token))
                 .andExpect(status().isNoContent())
                 .andExpect(content().string(""));
         post = postRepository.findById(post.getId()).orElse(null);
